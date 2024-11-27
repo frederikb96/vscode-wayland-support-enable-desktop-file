@@ -1,0 +1,22 @@
+---
+- hosts: all
+  vars:
+    wayland_flags: '--enable-features=UseOzonePlatform --ozone-platform=wayland'
+    desktop_file_source: /usr/share/applications/code.desktop
+    desktop_file_dest: "{{ ansible_env.HOME }}/.local/share/applications/code.desktop"
+
+  tasks:
+    - name: Copy the desktop file to the user's local applications directory
+      copy:
+        src: "{{ desktop_file_source }}"
+        dest: "{{ desktop_file_dest }}"
+        mode: '0644'
+
+    - name: Add Wayland flags after '/code ' in Exec lines
+      replace:
+        path: "{{ desktop_file_dest }}"
+        regexp: '/code '
+        replace: "/code {{ wayland_flags }} "
+
+    - name: Update the desktop database for local applications
+      command: update-desktop-database "{{ ansible_env.HOME }}/.local/share/applications"
